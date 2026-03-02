@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { Link, Unlink, Info } from "lucide-react";
+import { Link, Unlink, Info, CopyCheck } from "lucide-react";
 import { CompressionSettings, OutputFormat } from "@/types";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -23,11 +23,15 @@ import {
 interface CompressionControlsProps {
   settings: CompressionSettings;
   onUpdate: (partial: Partial<CompressionSettings>) => void;
+  imageCount?: number;
+  onApplyToAll?: (partial: { quality?: number; format?: OutputFormat }) => void;
 }
 
 export function CompressionControls({
   settings,
   onUpdate,
+  imageCount = 1,
+  onApplyToAll,
 }: CompressionControlsProps) {
   const isPng = settings.format === "image/png";
 
@@ -211,6 +215,19 @@ export function CompressionControls({
               : "WebP — modern format with superior compression"}
         </p>
       </div>
+
+      {imageCount > 1 && onApplyToAll && (
+        <Button
+          variant="outline"
+          className="w-full cursor-pointer"
+          onClick={() =>
+            onApplyToAll({ quality: settings.quality, format: settings.format })
+          }
+        >
+          <CopyCheck className="mr-2 h-4 w-4" />
+          Apply to all images
+        </Button>
+      )}
     </div>
   );
 }

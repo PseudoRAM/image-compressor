@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { Upload, ImageIcon } from "lucide-react";
+import { Upload, ImageIcon, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const ACCEPTED_TYPES = [
   "image/jpeg",
@@ -16,30 +17,37 @@ const ACCEPTED_TYPES = [
 ];
 
 interface ImageUploadZoneProps {
-  onFileSelected: (file: File) => void;
+  onFilesSelected: (files: File[]) => void;
+  compact?: boolean;
 }
 
-export function ImageUploadZone({ onFileSelected }: ImageUploadZoneProps) {
+export function ImageUploadZone({ onFilesSelected, compact }: ImageUploadZoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = useCallback(
-    (file: File) => {
-      if (ACCEPTED_TYPES.includes(file.type) || file.type.startsWith("image/")) {
-        onFileSelected(file);
+  const handleFiles = useCallback(
+    (fileList: FileList) => {
+      const valid: File[] = [];
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        if (ACCEPTED_TYPES.includes(file.type) || file.type.startsWith("image/")) {
+          valid.push(file);
+        }
+      }
+      if (valid.length > 0) {
+        onFilesSelected(valid);
       }
     },
-    [onFileSelected]
+    [onFilesSelected]
   );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragOver(false);
-      const file = e.dataTransfer.files[0];
-      if (file) handleFile(file);
+      handleFiles(e.dataTransfer.files);
     },
-    [handleFile]
+    [handleFiles]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -54,11 +62,38 @@ export function ImageUploadZone({ onFileSelected }: ImageUploadZoneProps) {
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) handleFile(file);
+      if (e.target.files && e.target.files.length > 0) {
+        handleFiles(e.target.files);
+      }
+      // Reset input so re-selecting the same file(s) triggers change
+      e.target.value = "";
     },
-    [handleFile]
+    [handleFiles]
   );
+
+  if (compact) {
+    return (
+      <>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleInputChange}
+          className="hidden"
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => inputRef.current?.click()}
+          className="w-full"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add more images
+        </Button>
+      </>
+    );
+  }
 
   return (
     <div
@@ -77,6 +112,7 @@ export function ImageUploadZone({ onFileSelected }: ImageUploadZoneProps) {
         ref={inputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleInputChange}
         className="hidden"
       />
@@ -95,7 +131,7 @@ export function ImageUploadZone({ onFileSelected }: ImageUploadZoneProps) {
       </div>
 
       <p className="mb-1 text-lg font-medium">
-        {isDragOver ? "Drop your image here" : "Drop an image or click to upload"}
+        {isDragOver ? "Drop your images here" : "Drop images or click to upload"}
       </p>
       <p className="text-sm text-muted-foreground">
         Supports JPEG, PNG, WebP, GIF, BMP, TIFF, AVIF, SVG

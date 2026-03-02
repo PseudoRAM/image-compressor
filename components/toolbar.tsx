@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Undo2, Trash2 } from "lucide-react";
+import { Download, Undo2, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -14,6 +14,9 @@ interface ToolbarProps {
   onDownload: () => void;
   onUndo: () => void;
   onClear: () => void;
+  imageCount?: number;
+  onDownloadAll?: () => void;
+  onRemove?: () => void;
 }
 
 export function Toolbar({
@@ -22,7 +25,12 @@ export function Toolbar({
   onDownload,
   onUndo,
   onClear,
+  imageCount = 1,
+  onDownloadAll,
+  onRemove,
 }: ToolbarProps) {
+  const isMulti = imageCount > 1;
+
   return (
     <div className="flex items-center justify-center gap-2">
       <Tooltip>
@@ -39,6 +47,20 @@ export function Toolbar({
         </TooltipContent>
       </Tooltip>
 
+      {isMulti && onDownloadAll && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" onClick={onDownloadAll}>
+              <Download className="mr-2 h-4 w-4" />
+              Download All ({imageCount})
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Download all {imageCount} compressed images</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
       <Tooltip>
         <TooltipTrigger asChild>
           <span>
@@ -53,6 +75,20 @@ export function Toolbar({
         </TooltipContent>
       </Tooltip>
 
+      {isMulti && onRemove && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" onClick={onRemove}>
+              <X className="mr-2 h-4 w-4" />
+              Remove
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Remove the selected image</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button variant="outline" onClick={onClear}>
@@ -61,7 +97,7 @@ export function Toolbar({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Remove image and start over</p>
+          <p>{isMulti ? "Remove all images and start over" : "Remove image and start over"}</p>
         </TooltipContent>
       </Tooltip>
     </div>
