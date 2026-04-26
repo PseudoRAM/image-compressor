@@ -389,6 +389,91 @@ export function useImageCompressor() {
     []
   );
 
+  const handleHalveAll = useCallback(() => {
+    setState((prev) => {
+      const newImages = { ...prev.images };
+      const nonSelectedIds: ImageId[] = [];
+
+      for (const id of prev.order) {
+        const entry = newImages[id];
+        if (!entry) continue;
+
+        const newWidth = Math.max(1, Math.round(entry.originalWidth / 2));
+        const newHeight = Math.max(1, Math.round(entry.originalHeight / 2));
+
+        const settingsChanged =
+          newWidth !== entry.settings.width || newHeight !== entry.settings.height;
+        if (!settingsChanged) continue;
+
+        const history = historiesRef.current[id];
+        if (history) {
+          history.entries = [
+            ...history.entries.slice(-(MAX_HISTORY - 1)),
+            structuredClone(entry.settings),
+          ];
+        }
+
+        const isSelected = id === prev.selectedId;
+        newImages[id] = {
+          ...entry,
+          settings: { ...entry.settings, width: newWidth, height: newHeight },
+          isCompressing: isSelected,
+        };
+
+        if (!isSelected) {
+          nonSelectedIds.push(id);
+        }
+      }
+
+      for (const id of nonSelectedIds) {
+        const entry = newImages[id];
+        if (!entry) continue;
+        const s = entry.settings;
+        compressImage({
+          imageUrl: entry.originalUrl,
+          width: s.width,
+          height: s.height,
+          format: s.format,
+          quality: s.quality,
+        }).then((result) => {
+          setState((cur) => {
+            const e = cur.images[id];
+            if (!e) return cur;
+            if (e.compressedUrl) {
+              URL.revokeObjectURL(e.compressedUrl);
+            }
+            return {
+              ...cur,
+              images: {
+                ...cur.images,
+                [id]: {
+                  ...e,
+                  compressedBlob: result.blob,
+                  compressedUrl: result.url,
+                  isCompressing: false,
+                },
+              },
+            };
+          });
+        }).catch(() => {
+          setState((cur) => {
+            const e = cur.images[id];
+            if (!e) return cur;
+            return {
+              ...cur,
+              images: {
+                ...cur.images,
+                [id]: { ...e, isCompressing: false },
+              },
+            };
+          });
+        });
+      }
+
+      return { ...prev, images: newImages };
+    });
+  }, []);
+
   const handleDownload = useCallback(() => {
     if (!selected?.compressedUrl || !selected.compressedBlob) return;
 
@@ -524,6 +609,7 @@ export function useImageCompressor() {
     handleDownload,
     handleDownloadAll,
     handleApplyToAll,
+    handleHalveAll,
     handleClear,
     handleUndo,
   };

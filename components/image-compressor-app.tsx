@@ -39,6 +39,7 @@ export function ImageCompressorApp() {
     handleDownload,
     handleDownloadAll,
     handleApplyToAll,
+    handleHalveAll,
     handleClear,
     handleUndo,
   } = useImageCompressor();
@@ -101,6 +102,7 @@ export function ImageCompressorApp() {
                 onUpdate={updateSettings}
                 imageCount={imageCount}
                 onApplyToAll={handleApplyToAll}
+                onHalveAll={handleHalveAll}
               />
             </CardContent>
           </Card>

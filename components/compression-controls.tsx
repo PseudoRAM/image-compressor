@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { Link, Unlink, Info, CopyCheck } from "lucide-react";
+import { Link, Unlink, Info, CopyCheck, Minimize2 } from "lucide-react";
 import { CompressionSettings, OutputFormat } from "@/types";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ interface CompressionControlsProps {
   onUpdate: (partial: Partial<CompressionSettings>) => void;
   imageCount?: number;
   onApplyToAll?: (partial: { quality?: number; format?: OutputFormat }) => void;
+  onHalveAll?: () => void;
 }
 
 export function CompressionControls({
@@ -32,6 +33,7 @@ export function CompressionControls({
   onUpdate,
   imageCount = 1,
   onApplyToAll,
+  onHalveAll,
 }: CompressionControlsProps) {
   const isPng = settings.format === "image/png";
 
@@ -226,6 +228,17 @@ export function CompressionControls({
         >
           <CopyCheck className="mr-2 h-4 w-4" />
           Apply to all images
+        </Button>
+      )}
+
+      {imageCount > 1 && onHalveAll && (
+        <Button
+          variant="outline"
+          className="w-full cursor-pointer"
+          onClick={onHalveAll}
+        >
+          <Minimize2 className="mr-2 h-4 w-4" />
+          Scale all to 50%
         </Button>
       )}
     </div>
